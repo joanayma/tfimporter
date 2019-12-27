@@ -32,6 +32,9 @@ class ColorPrint(object):
     def info(self, message: str):
         self.color_print(message, INFO, "INFO")
 
+    def skipped(self, message: str):
+        self.color_print(message, INFO, "SKIPPED")
+
     def already_present(self, message: str):
         self.color_print(message, SUCCESS, "PRESENT")
 
@@ -85,10 +88,14 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
     color_print.info("Loading state...")
     result = subprocess.run(["terraform", "state", "list"], cwd=terraform_path, capture_output=True, universal_newlines=True)
     if result.returncode:
-        color_print.error(f"Error loading state ({result.returncode}): {result.stderr}")
-        return 1
-
-    existing_state_resources = [x for x in result.stdout.split("\n") if x]
+        if "No state file was found!" in result.stderr:
+            # Ignore this error, no state has been set yet
+            existing_state_resources = {}
+        else:
+            color_print.error(f"Error loading state ({result.returncode}): {result.stderr}")
+            return 1
+    else:
+        existing_state_resources = [x for x in result.stdout.split("\n") if x]
 
     importers = ImporterCollection('tfimporter.importers')
 
@@ -106,7 +113,7 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
 
         name_prefix = values.get("name_prefix")
         if name_prefix:
-            color_print.info(f"{address}: detected name prefix parameter, skipping")
+            color_print.skipped(f"{address}: resource defined with name_prefix ({name_prefix})")
             continue
 
         for importer in importers.plugins:
@@ -127,8 +134,12 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                                 # Reload state after save
                                 result = subprocess.run(["terraform", "state", "list"], cwd=terraform_path, capture_output=True, universal_newlines=True)
                                 if result.returncode:
-                                    color_print.error(f"Error reloading state ({result.returncode}): {result.stderr}")
-                                    return 1
+                                    if "No state file was found!" in result.stderr:
+                                        # Ignore this error, no state has been set yet
+                                        existing_state_resources = {}
+                                    else:
+                                        color_print.error(f"Error reloading state ({result.returncode}): {result.stderr}")
+                                        return 1
 
                             except Exception as ex:
                                 color_print.error(f"{address}: error saving state: {str(ex)}")

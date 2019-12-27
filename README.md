@@ -83,6 +83,8 @@ The previous command would show what is going to do; to really import the resour
 
 ![](screenshot_changed.png)
 
+It is possible that you would need to run the script more than once, because some resources need parent resources to be created (for example, role policies need roles to be created previously). 
+
 ## Limitations
 
 * The [assume_role](https://www.terraform.io/docs/providers/aws/index.html#assume-role) option for the AWS provider config is ignored
