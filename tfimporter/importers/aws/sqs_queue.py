@@ -1,6 +1,9 @@
 from pprint import pprint
 from typing import Dict, Any, Optional
 
+from botocore.exceptions import ClientError
+
+from tfimporter import ObjectNotFoundException
 from tfimporter.importers.aws import AwsImporter
 
 
@@ -20,4 +23,10 @@ class AwsSqsQueueImporter(AwsImporter):
             raise Exception("Not available for new resources with prefix")
 
         queue_name = terraform_values.get("name")
-        return self.get_aws_client('sqs', full_context).get_queue_url(QueueName=queue_name).get("QueueUrl")
+        try:
+            return self.get_aws_client('sqs', full_context).get_queue_url(QueueName=queue_name).get("QueueUrl")
+        except ClientError as ex:
+            if ex.response.get("Error", {}).get("Code") == "AWS.SimpleQueueService.NonExistentQueue":
+                raise ObjectNotFoundException(queue_name)
+            else:
+                raise ex

@@ -9,8 +9,7 @@ from pprint import pprint
 
 import colorama
 
-from tfimporter import ImporterCollection, MissingDependantObjectException
-
+from tfimporter import ImporterCollection, MissingDependantObjectException, ObjectNotFoundException
 
 INFO = colorama.Fore.CYAN
 SUCCESS = colorama.Fore.GREEN
@@ -26,24 +25,30 @@ class ColorPrint(object):
 
     def color_print(self, message: str, color: str, prefix: str):
         if self.no_color:
-            print(prefix.ljust(10, ".") + " " + message)
+            print(prefix.ljust(12, ".") + " " + message)
         else:
-            print(color + prefix.ljust(10, ".") + " " + message + colorama.Style.RESET_ALL)
+            print(color + prefix.ljust(12, ".") + " " + message + colorama.Style.RESET_ALL)
 
     def info(self, message: str):
         self.color_print(message, INFO, "INFO")
 
-    def success(self, message: str):
-        self.color_print(message, SUCCESS, "SUCCESS")
+    def already_present(self, message: str):
+        self.color_print(message, SUCCESS, "PRESENT")
 
-    def modified(self, message: str):
-        self.color_print(message, MODIFIED, "MODIFIED")
+    def imported(self, message: str):
+        self.color_print(message, MODIFIED, "IMPORTED")
 
     def warning(self, message: str):
         self.color_print(message, WARNING, "WARNING")
 
+    def missing(self, message: str):
+        self.color_print(message, WARNING, "MISSING")
+
     def error(self, message: str):
         self.color_print(message, ERROR, "ERROR")
+
+    def not_found(self, message: str):
+        self.color_print(message, ERROR, "NOT_FOUND")
 
 
 def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
@@ -96,7 +101,7 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
         values = element.get("values")
 
         if address in existing_state_resources:
-            color_print.success(f"{address}: already in state")
+            color_print.already_present(f"{address}: already in state")
             continue
 
         name_prefix = values.get("name_prefix")
@@ -117,7 +122,7 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                                 if result.returncode:
                                     color_print.error(f"{address}: error importing state ({result.returncode}): {result.stderr}")
                                 else:
-                                    color_print.modified(f"{address}: saved state (external ID: {resource_id})")
+                                    color_print.imported(f"{address}: saved state (external ID: {resource_id})")
 
                                 # Reload state after save
                                 result = subprocess.run(["terraform", "state", "list"], cwd=terraform_path, capture_output=True, universal_newlines=True)
@@ -128,11 +133,13 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                             except Exception as ex:
                                 color_print.error(f"{address}: error saving state: {str(ex)}")
                         else:
-                            color_print.warning(f"{address}: external ID is {resource_id} (not in state yet)")
+                            color_print.missing(f"{address}: external ID is {resource_id}")
                     else:
                         color_print.warning(f"{address}: no external ID guessed")
                 except MissingDependantObjectException as ex:
                     color_print.error(f"{address}: missing dependant object: {str(ex)}")
+                except ObjectNotFoundException as ex:
+                    color_print.not_found(f"{address}: object not found ({str(ex)})")
                 except Exception as ex:
                     color_print.error(f"{address}: error getting external ID: {str(ex)}")
                 break

@@ -10,6 +10,10 @@ class MissingDependantObjectException(Exception):
     pass
 
 
+class ObjectNotFoundException(Exception):
+    pass
+
+
 class Importer(ABC):
     """Base class that each plugin must inherit from. within this class
     you must define the methods that all of your plugins must implement.

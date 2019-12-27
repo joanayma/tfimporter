@@ -1,5 +1,6 @@
 from typing import Dict, Any, Optional
 
+from tfimporter import ObjectNotFoundException
 from tfimporter.importers.aws import AwsImporter
 
 
@@ -31,7 +32,7 @@ class AwsCloudwatchLogGroupImporter(AwsImporter):
                     log_groups.append(log_group_data)
 
         if not log_groups:
-            raise Exception("No LOG group found")
+            raise ObjectNotFoundException()
         elif len(log_groups) > 1:
             raise Exception("Multiple LOG groups found")
         else:

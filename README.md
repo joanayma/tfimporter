@@ -10,7 +10,7 @@ The workflow of the script is:
 * Load the current state
 * Loop the resources in the plan:
     * If the resource is already in the state, do nothing
-    * If not, find the importe plugins that can handle the resource type
+    * If not, find the importer plugin that can handle the resource type
     * If any plugin found, call it to fetch the resource _external ID_
     * If the _external ID_ has been resolved, import it in the state
 
@@ -47,7 +47,7 @@ The current available importers are located in the [tfimporter/importers](tfimpo
 
 ## Installation
 
-Requierements:
+Requirements:
 
 * [Python 3.7](https://www.python.org/)
 * [pipenv](https://pipenv-es.readthedocs.io/)

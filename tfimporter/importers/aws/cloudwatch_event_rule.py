@@ -1,6 +1,7 @@
 from pprint import pprint
 from typing import Dict, Any, Optional
 
+from tfimporter import ObjectNotFoundException
 from tfimporter.importers.aws import AwsImporter
 
 
@@ -27,7 +28,7 @@ class AwsCloudwatchEventRuleImporter(AwsImporter):
                     rules.append(rules_data)
 
         if not rules:
-            raise Exception("No rule found")
+            raise ObjectNotFoundException()
         elif len(rules) > 1:
             raise Exception("Multiple rules found")
         else:

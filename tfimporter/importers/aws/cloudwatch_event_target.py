@@ -1,7 +1,7 @@
 from pprint import pprint
 from typing import Dict, Any, Optional
 
-from tfimporter import MissingDependantObjectException
+from tfimporter import MissingDependantObjectException, ObjectNotFoundException
 from tfimporter.importers.aws import AwsImporter
 
 
@@ -28,7 +28,7 @@ class AwsCloudwatchEventTargetImporter(AwsImporter):
                     targets.append(targets_data)
 
         if not targets:
-            raise Exception("No target found")
+            raise ObjectNotFoundException()
         elif len(targets) > 1:
             raise Exception("Multiple targets found")
         else:
