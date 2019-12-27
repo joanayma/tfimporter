@@ -38,8 +38,8 @@ And the values received, got from the Terraform plan, are these (for example, fo
 Using these values, the importer plugin connects to AWS using [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/elasticbeanstalk.html) and tries to guess the resource ID that must be used in [terraform import](https://www.terraform.io/docs/import/index.html); in this case, the name of the resource to import [is the same as the Beanstalk application](https://www.terraform.io/docs/providers/aws/r/elastic_beanstalk_application.html#import), but in other cases, it can be:
 
 * the ARN
-* for a [role policy](tfimporter/importers/iam_role_policy.py), is the role name, plus ":", plus the policy name
-* for an [Cloudwatch event target](tfimporter/importers/clooudwatch_event_target.py), is the rule name, plus "/", plus the target ID
+* for a [role policy](tfimporter/importers/aws/iam_role_policy.py), is the role name, plus ":", plus the policy name
+* for an [Cloudwatch event target](tfimporter/importers/aws/cloudwatch_event_target.py), is the rule name, plus "/", plus the target ID
 
 In general, all Terraform resources that can be imported have a section called "Import" in its documentation page, specifying the way to import the resources.
 
@@ -67,7 +67,7 @@ git pull
 pipenv install
 ```
 
-And the run the script from your directory where you have the Terraform configurations (note: the `$(pwd)` is because the script need an absolute path to the Terraform directory, as the script needs to `cd` to the Python project directory):
+And then run the script from the directory where you have the Terraform configurations (note: the `$(pwd)` is because the script need an absolute path to the Terraform directory, as the script needs to `cd` to the Python project directory):
 
 ```bash
 ~/tfimporter/tfimporter.sh $(pwd)
