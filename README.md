@@ -20,7 +20,7 @@ The importer plugins are very simple Python modules that tries to guess the _ext
 class MyCustomImporter(Importer):
     def get_resource_id(self, resource_provider: str, resource_type: str, terraform_resource_name: str, terraform_values: Dict[str, Any], full_context: Dict[str, Any]) -> Optional[str]:
         pass
-``` 
+```
 
 And the values received, got from the Terraform plan, are these (for example, for a [Beanstalk application](https://www.terraform.io/docs/providers/aws/r/elastic_beanstalk_application.html)):
 
@@ -42,6 +42,8 @@ Using these values, the importer plugin connects to AWS using [boto3](https://bo
 * for an [Cloudwatch event target](tfimporter/importers/clooudwatch_event_target.py), is the rule name, plus "/", plus the target ID
 
 In general, all Terraform resources that can be imported have a section called "Import" in its documentation page, specifying the way to import the resources.
+
+The current available importers are located in the [tfimporter/importers](tfimporter/importers) package.
 
 ## Installation
 
