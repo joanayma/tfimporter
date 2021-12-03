@@ -129,7 +129,7 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
 
             if importer.supports_resource(provider_name, element_type):
                 try:
-                    resource_id = importer.get_resource_id(provider_name, element_type, element_tf_name, values, configuration)
+                    resource_id = importer.get_resource_id(element, configuration)
                     if resource_id:
                         if save_state:
                             try:

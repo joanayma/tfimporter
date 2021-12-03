@@ -12,20 +12,21 @@ class AwsSecurityGroupImporter(AwsImporter):
         self.description = 'AWS security group'
 
     def supports_resource(self, resource_provider: str, resource_type: str) -> bool:
-        return resource_provider == "aws" and resource_type == "aws_security_group"
+        return resource_provider == "registry.terraform.io/hashicorp/aws" and resource_type == "aws_security_group"
 
-    def get_resource_id(self, resource_provider: str, resource_type: str, terraform_resource_name: str, terraform_values: Dict[str, Any], full_context: Dict[str, Any]) -> Optional[str]:
+    def get_resource_id(self, element: Dict[str, Any], full_context: Dict[str, Any]) -> Optional[str]:
 
-        name_prefix = terraform_values.get("name_prefix")
+        provider_config_key = element.get("provider_config_key", "aws")
+        name_prefix = element.get("values", {}).get("name_prefix")
         if name_prefix:
             raise Exception("Not available for new resources with prefix")
 
-        vpc_id = terraform_values.get("vpc_id")
+        vpc_id = element.get("values", {}).get("vpc_id")
         if not vpc_id:
             raise MissingDependantObjectException("Parent VPC not created yet")
 
-        security_group_name = terraform_values.get("name")
-        for page in self.get_aws_client('ec2', full_context).get_paginator("describe_security_groups").paginate(Filters=[{"Name": "vpc-id", "Values": [vpc_id]}, {"Name": "group-name", "Values": [security_group_name]}]):
+        security_group_name = element.get("values", {}).get("name")
+        for page in self.get_aws_client('ec2', full_context, provider_config_key).get_paginator("describe_security_groups").paginate(Filters=[{"Name": "vpc-id", "Values": [vpc_id]}, {"Name": "group-name", "Values": [security_group_name]}]):
             for security_group_data in page.get("SecurityGroups"):
                 return security_group_data.get("GroupId")
         return None
