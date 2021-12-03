@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from nested_lookup import nested_lookup
 from pprint import pprint
 
 import colorama
@@ -99,13 +100,21 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
 
     importers = ImporterCollection('tfimporter.importers')
 
-    for idx, element in enumerate([x for x in configuration.get("planned_values", {}).get("root_module", {}).get("resources", {}) if x.get("mode") == "managed"]):
+    all_resources = [x for x in configuration.get("planned_values", {}).get("root_module", {}).get("resources", {}) if x.get("mode") == "managed"]
+    for modules in nested_lookup("child_modules", configuration):
+        for module in modules:
+            for resource in module.get("resources", []):
+                if resource.get("mode") == "managed":
+                    all_resources.append(resource)
 
+
+    for idx, element in enumerate(all_resources):
         address = element.get("address")
         provider_name = element.get("provider_name")
+        provider_config_key = element.get("provider_config_key", "aws")
         element_type = element.get("type")
         element_tf_name = element.get("name")
-        values = element.get("values")
+        values = element.get("values") or {}
 
         if address in existing_state_resources:
             color_print.already_present(f"{address}: already in state")
