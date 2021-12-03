@@ -165,7 +165,7 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                 break
 
         else:
-            color_print.error(f"{address}: unknown element type, skipping")
+            color_print.error(f"{address}: unknown element type {element_type}, skipping")
 
     return 0
 
