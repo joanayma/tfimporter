@@ -48,11 +48,17 @@ class ColorPrint(object):
     def missing(self, message: str):
         self.color_print(message, WARNING, "MISSING")
 
+    def missing_dep(self, message: str):
+        self.color_print(message, WARNING, "MISSING_DEP")
+
     def error(self, message: str):
         self.color_print(message, ERROR, "ERROR")
 
     def not_found(self, message: str):
         self.color_print(message, ERROR, "NOT_FOUND")
+
+    def unknown(self, message: str):
+        self.color_print(message, ERROR, "UNKNOWN")
 
 
 def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
@@ -133,20 +139,17 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
             continue
 
         for importer in importers.plugins:
-
             if importer.supports_resource(provider_name, element_type):
                 try:
                     resource_id = importer.get_resource_id(element, configuration)
                     if resource_id:
                         if save_state:
                             try:
-
                                 result = subprocess.run(["terraform", "import", address, resource_id], cwd=terraform_path, capture_output=True, universal_newlines=True)
                                 if result.returncode:
                                     color_print.error(f"{address}: error importing state ({result.returncode}): {result.stderr}")
                                 else:
                                     color_print.imported(f"{address}: saved state (external ID: {resource_id})")
-
                                 # Reload state after save
                                 result = subprocess.run(["terraform", "state", "list"], cwd=terraform_path, capture_output=True, universal_newlines=True)
                                 if result.returncode:
@@ -156,7 +159,6 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                                     else:
                                         color_print.error(f"Error reloading state ({result.returncode}): {result.stderr}")
                                         return 1
-
                             except Exception as ex:
                                 color_print.error(f"{address}: error saving state: {str(ex)}")
                         else:
@@ -164,21 +166,18 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                     else:
                         color_print.warning(f"{address}: no external ID guessed")
                 except MissingDependantObjectException as ex:
-                    color_print.error(f"{address}: missing dependant object: {str(ex)}")
+                    color_print.missing_dep(f"{address}: missing dependant object: {str(ex)}")
                 except ObjectNotFoundException as ex:
                     color_print.not_found(f"{address}: object not found ({str(ex)})")
                 except Exception as ex:
                     color_print.error(f"{address}: error getting external ID: {str(ex)}")
                 break
-
         else:
-            color_print.error(f"{address}: unknown element type {element_type}, skipping")
-
+            color_print.unknown(f"{address}: unknown element type {element_type}, skipping")
     return 0
 
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--save', action='store_true', help="Save state")
     parser.add_argument('--no-color', action='store_true', help="Disable console colors")
