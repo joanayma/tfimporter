@@ -106,12 +106,19 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
             for resource in module.get("resources", []):
                 if resource.get("mode") == "managed":
                     all_resources.append(resource)
+                    if not resource.get("provider_config_key"):
+                        resource["provider_config_key"]= "aws"
+                    for module_calls in reversed(nested_lookup("module_calls", configuration)):
+                        for module_name, module_value in module_calls.items():
+                            if module_name in resource.get("address"):
+                                provider_config_key = module_value.get("providers", {}).get(resource.get("provider_config_key", "aws"))
+                                if provider_config_key:
+                                    resource["provider_config_key"] = provider_config_key
 
 
     for idx, element in enumerate(all_resources):
         address = element.get("address")
         provider_name = element.get("provider_name")
-        provider_config_key = element.get("provider_config_key", "aws")
         element_type = element.get("type")
         element_tf_name = element.get("name")
         values = element.get("values") or {}
