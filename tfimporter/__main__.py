@@ -113,7 +113,7 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                 if resource.get("mode") == "managed":
                     all_resources.append(resource)
                     if not resource.get("provider_config_key"):
-                        resource["provider_config_key"]= "aws"
+                        resource["provider_config_key"] = resource.get("provider_name", "").split("/")[-1]
                     for module_calls in reversed(nested_lookup("module_calls", configuration)):
                         for module_name, module_value in module_calls.items():
                             if module_name in resource.get("address"):
