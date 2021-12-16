@@ -15,7 +15,6 @@ class AwsSecurityGroupImporter(AwsImporter):
         return resource_provider == "registry.terraform.io/hashicorp/aws" and resource_type == "aws_security_group"
 
     def get_resource_id(self, element: Dict[str, Any], full_context: Dict[str, Any]) -> Optional[str]:
-
         provider_config_key = element.get("provider_config_key", "aws")
         name_prefix = element.get("values", {}).get("name_prefix")
         if name_prefix:
