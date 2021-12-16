@@ -15,22 +15,12 @@ class AwsCloudwatchEventTargetImporter(AwsImporter):
         return resource_provider == "registry.terraform.io/hashicorp/aws" and resource_type == "aws_cloudwatch_event_target"
 
     def get_resource_id(self, element: Dict[str, Any], full_context: Dict[str, Any]) -> Optional[str]:
-
         provider_config_key = element.get("provider_config_key", "aws")
         rule_name = element.get("values", {}).get("rule")
         if not rule_name:
             raise MissingDependantObjectException("Parent rule not created yet")
-
-        target_id = element.get("values", {}).get("target_id")
-        targets = []
+        arn = element.get("values", {}).get("arn")
         for page in self.get_aws_client('events', full_context, provider_config_key).get_paginator("list_targets_by_rule").paginate(Rule=rule_name):
-            for targets_data in page.get("Targets"):
-                if targets_data["Id"] == target_id:
-                    targets.append(targets_data)
-
-        if not targets:
-            raise ObjectNotFoundException()
-        elif len(targets) > 1:
-            raise Exception("Multiple targets found")
-        else:
-            return rule_name + "/" + targets[0]["Id"]
+            for target in page.get("Targets"):
+                if target["Arn"] == arn:
+                    return rule_name + "/" + target["Id"]
