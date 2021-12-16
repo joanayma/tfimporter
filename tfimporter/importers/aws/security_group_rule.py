@@ -1,7 +1,7 @@
 from pprint import pprint
 from typing import Dict, Any, Optional
 
-from tfimporter import MissingDependantObjectException
+from tfimporter import MissingDependantObjectException, NoOpException
 from tfimporter.importers.aws import AwsImporter
 
 
@@ -18,5 +18,5 @@ class AwsSecurityGroupRuleImporter(AwsImporter):
         provider_config_key = element.get("provider_config_key", "aws")
         security_group_id = element.get("values", {}).get("security_group_id")
         if not security_group_id:
-            raise MissingDependantObjectException("Parent security group not created yet")
-        raise Exception("Security group rules should have been imported automatically when importing parent security groups")
+            raise MissingDependantObjectException("Parent security group not imported or created yet")
+        raise NoOpException("Security group rules should have been imported automatically when importing parent security groups")

@@ -10,7 +10,7 @@ from pprint import pprint
 
 import colorama
 
-from tfimporter import ImporterCollection, MissingDependantObjectException, ObjectNotFoundException
+from tfimporter import ImporterCollection, MissingDependantObjectException, ObjectNotFoundException, NoOpException
 
 INFO = colorama.Fore.CYAN
 SUCCESS = colorama.Fore.GREEN
@@ -165,6 +165,8 @@ def main(terraform_path: str, save_state: bool, no_color: bool) -> int:
                             color_print.missing(f"{address}: external ID is {resource_id}")
                     else:
                         color_print.warning(f"{address}: no external ID guessed")
+                except NoOpException as ex:
+                    color_print.already_present(f"{address}: no action required")
                 except MissingDependantObjectException as ex:
                     color_print.missing_dep(f"{address}: missing dependant object: {str(ex)}")
                 except ObjectNotFoundException as ex:

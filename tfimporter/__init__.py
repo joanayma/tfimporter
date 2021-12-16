@@ -13,6 +13,8 @@ class MissingDependantObjectException(Exception):
 class ObjectNotFoundException(Exception):
     pass
 
+class NoOpException(Exception):
+    pass
 
 class Importer(ABC):
     """Base class that each plugin must inherit from. within this class
