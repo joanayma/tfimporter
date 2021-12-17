@@ -16,7 +16,31 @@ class AwsSecurityGroupRuleImporter(AwsImporter):
 
     def get_resource_id(self, element: Dict[str, Any], full_context: Dict[str, Any]) -> Optional[str]:
         provider_config_key = element.get("provider_config_key", "aws")
-        security_group_id = element.get("values", {}).get("security_group_id")
+        values = element.get("values")
+        security_group_id = values.get("security_group_id")
         if not security_group_id:
             raise MissingDependantObjectException("Parent security group not imported or created yet")
-        raise NoOpException("Security group rules should have been imported automatically when importing parent security groups")
+        rule_type = values.get("type")
+        protocol = values.get("protocol")
+        from_port = values.get("from_port")
+        to_port = values.get("to_port")
+        rule_self = values.get("self")
+        cidr_blocks = values.get("cidr_blocks")
+        prefix_list_ids = values.get("prefix_list_ids")
+        source_sg = values.get("source_security_group_id")
+        import_string = "_".join([
+            security_group_id,
+            rule_type,
+            str(protocol),
+            str(from_port),
+            str(to_port)
+        ])
+        if rule_self:
+            import_string += "_self"
+        if cidr_blocks:
+            import_string += "_" + "_".join(cidr_blocks)
+        if prefix_list_ids:
+            import_string += "_" + "_".join(prefix_list_ids)
+        if source_sg:
+            import_string += "_" + source_sg
+        return import_string
